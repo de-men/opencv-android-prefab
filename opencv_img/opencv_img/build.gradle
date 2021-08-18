@@ -1,0 +1,124 @@
+plugins {
+    id 'com.android.library'
+}
+
+
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+def sdkDir = properties.getProperty('sdk.dir')
+
+android {
+    compileSdkVersion 31
+
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 31
+        versionCode 2
+        versionName "1.0.1"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+
+        externalNativeBuild {
+            cmake {
+
+                // Shared runtime for shared libraries
+                arguments "-DANDROID_STL=c++_shared",
+                        "-DANDROID_HOME=$sdkDir",
+                        "-DCMAKE_BUILD_TYPE=Release",
+                        "-DANDROID_NATIVE_API_LEVEL=21",
+                        "-DWITH_CUDA=OFF",
+                        "-DWITH_MATLAB=OFF",
+                        "-DBUILD_ANDROID_EXAMPLES=OFF",
+                        "-DBUILD_DOCS=OFF",
+                        "-DBUILD_PERF_TESTS=OFF",
+                        "-DBUILD_TESTS=OFF",
+                        "-DBUILD_SHARED_LIBS=ON",
+                        "-DBUILD_opencv_objdetect=OFF",
+                        "-DBUILD_opencv_calib3d=OFF",
+                        "-DBUILD_opencv_video=OFF",
+                        "-DBUILD_opencv_videoio=OFF",
+                        "-DBUILD_opencv_features2d=OFF",
+                        "-DBUILD_opencv_flann=OFF",
+                        "-DBUILD_opencv_highgui=OFF",
+                        "-DBUILD_opencv_ml=OFF",
+                        "-DBUILD_opencv_photo=OFF",
+                        "-DBUILD_opencv_python=OFF",
+                        "-DBUILD_opencv_shape=OFF",
+                        "-DBUILD_opencv_stitching=OFF",
+                        "-DBUILD_opencv_superres=OFF",
+                        "-DBUILD_opencv_ts=OFF",
+                        "-DBUILD_opencv_videostab=OFF",
+                        "-DBUILD_opencv_dnn=OFF",
+                        "-DBUILD_opencv_gapi=OFF",
+                        "-DBUILD_opencv_java=OFF",
+                        "-DBUILD_opencv_world=ON",
+                        "-DBUILD_FAT_JAVA_LIB=OFF",
+                        "-BUILD_opencv_js_bindings_generator=OFF",
+                        "-BUILD_opencv_objc_bindings_generator=OFF",
+                        "-BUILD_opencv_java_bindings_generator=OFF"
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    externalNativeBuild {
+        // Encapsulates your CMake build configurations.
+        cmake {
+            // Provides a relative path to your CMake build script.
+            path "../../opencv/CMakeLists.txt"
+        }
+    }
+
+    // Enable generation of Prefab packages and include them in the library's AAR
+    buildFeatures {
+        prefabPublishing true
+    }
+
+    // Include the "opencv" module from the native build system in the AAR,
+    // and export the headers in src/main/cpp/include to its comsumers
+    prefab {
+        opencv_world {
+            headers "src/main/cpp/include"
+        }
+    }
+
+    // Avoid packing the unnecessary libraries into final AAR. For details
+    // refer to https://issuetracker.google.com/issues/168777344#comment5
+    // Note that if your AAR also contains Java/Kotlin APIs, you should not
+    // exclude libraries that are used by those APIs.
+    packagingOptions {
+        exclude("**/libopencv_world.so")
+        exclude("**/libc++_shared.so")
+    }
+}
+
+apply plugin: "com.vanniktech.maven.publish"
+
+allprojects {
+    plugins.withId("com.vanniktech.maven.publish") {
+        mavenPublish {
+            sonatypeHost = "S01"
+        }
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            def releasesRepoUrl = "$buildDir/repos/releases"
+            def snapshotsRepoUrl = "$buildDir/repos/snapshots"
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+        }
+    }
+}

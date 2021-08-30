@@ -1,6 +1,10 @@
 # opencv-android-prefab
 
-This compile only necessary modules of OpenCV in C++ and Android NDK then use Prefab for easy to use
+This compile only necessary modules of OpenCV in C++ and Android NDK then use Prefab for easy to 
+use. With using this lib, we can reduce size by only using what necessary modules. We can deliver
+our library that depends on opencv without missing libopencv_world.so error.
+
+This library only use for Cpp native development, not include Java code.
 
 ## Prepare your release by assigning a version (remove the -SNAPSHOT suffix)
 
@@ -10,10 +14,36 @@ cd [module]
 ./gradlew closeAndReleaseRepository
 ```
 
-### OpenCV Image
+### Using for Native Android module
 
-Include opencv_core, opencv_imgproc and opencv_imgcodecs
+In the app/build.gradle file
 
 ```groovy
-implementation 'org.demen.android.opencv:opencv-img:1.0.2'
+android {
+    buildFeatures {
+        prefab true
+    }
+}
+
+dependencies {
+    implementation 'org.demen.android.opencv:opencv:1.0.1'
+}
+```
+
+In the app/main/cpp/CMakeLists.txt
+
+```cmake
+find_package(opencv REQUIRED CONFIG)
+
+target_link_libraries( # Specifies the target library.
+        native-lib
+        opencv::opencv_core
+        opencv::opencv_imgproc  # Or other modules
+        )
+```
+
+Use in cpp file
+```objectivec
+#include <opencv2/core.hpp>
+const auto info = cv::getBuildInformation();
 ```

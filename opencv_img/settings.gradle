@@ -1,2 +1,0 @@
-rootProject.name = "OpenCV Image"
-include ':opencv_img'

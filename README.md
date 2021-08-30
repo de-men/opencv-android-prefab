@@ -16,6 +16,40 @@ cd [module]
 
 ### Using for Native Android module
 
+#### Use wildcard opencv_world module
+
+Use this dependency then you don't need to care about dependencies of each modules. opencv_world
+include all opencv modules.
+
+In the app/build.gradle file
+
+```groovy
+android {
+    buildFeatures {
+        prefab true
+    }
+}
+
+dependencies {
+    implementation 'org.demen.android.opencv:opencv_world:1.0.0'
+}
+```
+
+In the app/main/cpp/CMakeLists.txt
+
+```cmake
+find_package(opencv REQUIRED CONFIG)
+
+target_link_libraries( # Specifies the target library.
+        native-lib
+        opencv::opencv_world
+        )
+```
+
+#### Use separate modules
+
+Use this dependency to optimize the app size. Only link with libraries that you need for the app.
+
 In the app/build.gradle file
 
 ```groovy
@@ -41,6 +75,7 @@ target_link_libraries( # Specifies the target library.
         opencv::opencv_imgproc  # Or other modules
         )
 ```
+
 
 Use in cpp file
 ```objectivec
